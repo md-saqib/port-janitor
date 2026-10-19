@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and test
+        shell: powershell
+        run: ./build.ps1 -Version "0.0.0-ci.${{ github.run_number }}" -Test
+
+      - name: Install and uninstall
+        shell: powershell
+        run: ./tests/install-test.ps1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PortJanitor-${{ github.sha }}
+          path: |
+            dist/PortJanitor.exe
+            dist/PortJanitor-Setup.exe

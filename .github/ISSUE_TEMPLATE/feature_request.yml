@@ -1,0 +1,15 @@
+name: Feature request
+description: Suggest an idea for PortJanitor
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the situation, for example "I keep losing track of which Docker container holds port 5432".
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like PortJanitor to do?

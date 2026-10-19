@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and test
+        shell: powershell
+        run: ./build.ps1 -Version "${{ github.ref_name }}" -Test
+
+      - name: Install and uninstall
+        shell: powershell
+        run: ./tests/install-test.ps1
+
+      - name: Write checksums and release notes
+        shell: powershell
+        run: |
+          $version = '${{ github.ref_name }}'.TrimStart('v')
+          $changelog = Get-Content CHANGELOG.md -Raw -Encoding UTF8
+          $section = [regex]::Match($changelog, "(?ms)^## \[$([regex]::Escape($version))\][^\n]*\n(.*?)(?=^## \[|^\[|\z)")
+          $notes = if ($section.Success) { $section.Groups[1].Value.Trim() } else { 'See CHANGELOG.md for details.' }
+          $notes += "`n`n**Downloads:** ``PortJanitor-Setup.exe`` installs PortJanitor with desktop and Start menu shortcuts. ``PortJanitor.exe`` is the portable version.`n`n**SHA-256:**"
+          foreach ($name in 'PortJanitor-Setup.exe', 'PortJanitor.exe') {
+            $hash = (Get-FileHash "dist/$name" -Algorithm SHA256).Hash.ToLower()
+            "$hash  $name" | Out-File -Encoding ascii "dist/$name.sha256"
+            $notes += "`n- ``$name``: ``$hash``"
+          }
+          [IO.File]::WriteAllText("$PWD/dist/notes.md", $notes)
+
+      - name: Publish GitHub release
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = '${{ github.ref_name }}'
+          $ghArgs = @('release', 'create', $tag, 'dist/PortJanitor-Setup.exe', 'dist/PortJanitor-Setup.exe.sha256', 'dist/PortJanitor.exe', 'dist/PortJanitor.exe.sha256', '--title', "PortJanitor $tag", '--notes-file', 'dist/notes.md')
+          if ($tag -match '-') { $ghArgs += '--prerelease' }
+          gh @ghArgs

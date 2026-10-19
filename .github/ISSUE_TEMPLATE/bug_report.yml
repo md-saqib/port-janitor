@@ -1,0 +1,36 @@
+name: Bug report
+description: Something in PortJanitor doesn't work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: PortJanitor version
+      description: Shown in the window title.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: "Windows 11 24H2"
+  - type: dropdown
+    id: elevated
+    attributes:
+      label: Was PortJanitor running as administrator?
+      options:
+        - "No"
+        - "Yes"
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Error messages, the process or port involved, screenshots.
